@@ -13,6 +13,6 @@ Welcome!
   $ export ANCESTRY_USERNAME=foo
   $ export ANCESTRY_PASSWORD=bar
   ```
-  
-1. Update the `names` array in *bot.py*
+
+1. Update the surnames in *data/surnames.txt*
 1. Run: `python bot.py`

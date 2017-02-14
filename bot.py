@@ -10,7 +10,8 @@ from selenium import webdriver
 
 USERNAME = os.getenv('ANCESTRY_USERNAME', None)
 PASSWORD = os.getenv('ANCESTRY_PASSWORD', None)
-FILE = os.getenv('SURNAME_FILE_NAME', 'surnames.txt')
+INPUT_FILE = os.path.join('data', 'surnames.txt')
+OUTPUT_FILE = os.path.join('data', 'data.csv')
 BASE = 'http://search.ancestry.com/cgi-bin/sse.dll?db=nypl&gss=sfs28_ms_db&new=1&rank=1&msT=1&MS_AdvCB=1&gsln={0}&gsln_x=1&MSAV=2&uidh=quk'
 
 
@@ -18,7 +19,7 @@ BASE = 'http://search.ancestry.com/cgi-bin/sse.dll?db=nypl&gss=sfs28_ms_db&new=1
 
 def get_surnames():
     data = []
-    with open(FILE) as f:
+    with open(INPUT_FILE) as f:
         reader = csv.reader(f)
         for row in reader:
             data.append(row[0])
@@ -70,11 +71,12 @@ def get_search_results(driver, array):
                     data = []
                     for value in driver.find_elements_by_tag_name('td'):
                         data.append(value.text)
-                    with open('data.csv', 'a') as f:
+                    with open(OUTPUT_FILE, 'a') as f:
                         w = csv.writer(f)
                         w.writerow(data)
                         print('...done')
                         break
+    driver.quit()
 
 
 if __name__ == '__main__':
