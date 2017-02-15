@@ -1,5 +1,4 @@
 import os
-import sys
 import csv
 from time import sleep
 
@@ -28,8 +27,8 @@ def get_surnames():
 
 def authenticate():
     print('logging in...')
-    driver = webdriver.Firefox()
-    # driver = webdriver.Chrome()
+    # driver = webdriver.Firefox()
+    driver = webdriver.Chrome()
     # driver = webdriver.PhantomJS()
     driver.get('https://www.ancestry.com/secure/login')
     sleep(5)
@@ -52,8 +51,8 @@ def authenticate():
 
 
 def get_search_results(driver, array):
-    driver.get(BASE)
     for surname in array:
+        print('')
         print('searching passenger list for {0}...'.format(surname))
         driver.get(BASE.format(surname))
         sleep(5)
@@ -62,21 +61,34 @@ def get_search_results(driver, array):
             print('no records found for {0}'.format(surname))
             driver.quit()
             return False
-        else:
-            for row in records:
-                cell = row.find_elements_by_tag_name('td')[5].text
-                if len(cell) > 1:
-                    row.find_elements_by_tag_name('td')[0].click()
-                    sleep(5)
-                    data = []
-                    for value in driver.find_elements_by_tag_name('td'):
-                        data.append(value.text)
-                    with open(OUTPUT_FILE, 'a') as f:
-                        w = csv.writer(f)
-                        w.writerow(data)
-                        print('...done')
-                        break
+        get_links(driver, records, surname)
     driver.quit()
+
+
+def get_links(driver, records, surname):
+    links = []
+    print('...getting links')
+    for row in records:
+        cell = row.find_elements_by_tag_name('td')[5].text
+        if len(cell) > 1:
+            link = row.find_element_by_tag_name('a')
+            links.append(link.get_attribute('href'))
+    print('...found {0} links'.format(len(links)))
+    print('...getting data')
+    counter = 1
+    for link in links:
+        print('...from link {0} of {1}'.format(counter, len(links)))
+        driver.get(link)
+        sleep(5)
+        data = []
+        data.append(surname)
+        for value in driver.find_elements_by_tag_name('td'):
+            data.append(value.text)
+        with open(OUTPUT_FILE, 'a') as f:
+            w = csv.writer(f)
+            w.writerow(data)
+        counter += 1
+    print('...done')
 
 
 if __name__ == '__main__':

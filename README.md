@@ -6,7 +6,7 @@ Welcome!
 
 1. Fork/Clone
 1. Install the dependencies - `pip install -r requirements.txt`
-1. Install [geckodriver](https://github.com/mozilla/geckodriver/releases) globally
+1. Install [ChromeDriver](https://sites.google.com/a/chromium.org/chromedriver/) globally
 1. Set environment variables:
 
   ```sh
