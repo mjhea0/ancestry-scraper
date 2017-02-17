@@ -1,5 +1,6 @@
 import os
 import csv
+import math
 from time import sleep
 
 from selenium import webdriver
@@ -50,49 +51,71 @@ def authenticate():
         return False
 
 
-def get_search_results(driver, array):
-    for surname in array:
-        print('')
-        print('searching passenger list for {0}...'.format(surname))
-        driver.get(BASE.format(surname))
-        sleep(5)
+def get_search_results(driver, name):
+    print('\nsearching passenger list for {0}...'.format(name))
+    driver.get(BASE.format(name))
+    sleep(5)
+    try:
+        total_records = str(driver.find_element_by_class_name(
+            'w50').text).split(' ')[-1]
+        total_pages = math.ceil(int(int(total_records.replace(',', ''))) / 20)
+        print('...found {0} records'.format(total_records))
+        return {
+            'total_records': total_records,
+            'total_pages': total_pages
+        }
+    except:
+        print('...no records found for {0}'.format(name))
+        return False
+
+
+def get_page(driver, results, name):
+    page = 1
+    print('   ...getting page {0}'.format(page))
+    records = driver.find_elements_by_css_selector('tr.record')
+    # get first page
+    get_links(driver, records, name)
+    driver.find_element_by_class_name('iconArrowBack').click()
+    # get subsequent pages
+    while page != results['total_pages']:
+        driver.find_element_by_class_name('iconArrowRight').click()
+        page += 1
+        print('   ...getting page {0}'.format(page))
         records = driver.find_elements_by_css_selector('tr.record')
-        if not len(records):
-            print('no records found for {0}'.format(surname))
-            driver.quit()
-            return False
-        get_links(driver, records, surname)
-    driver.quit()
+        get_links(driver, records, name)
+        driver.find_element_by_class_name('iconArrowBack').click()
+    return True
 
 
-def get_links(driver, records, surname):
+def get_links(driver, records, name):
     links = []
-    print('...getting links')
+    print('      ...getting links')
     for row in records:
         cell = row.find_elements_by_tag_name('td')[5].text
         if len(cell) > 1:
             link = row.find_element_by_tag_name('a')
             links.append(link.get_attribute('href'))
-    print('...found {0} links'.format(len(links)))
-    print('...getting data')
-    counter = 1
+    print('      ...found {0} links'.format(len(links)))
+    print('      ...getting data')
     for link in links:
-        print('...from link {0} of {1}'.format(counter, len(links)))
+        print('         ...getting link')
         driver.get(link)
         sleep(5)
         data = []
-        data.append(surname)
+        data.append(name)
         for value in driver.find_elements_by_tag_name('td'):
             data.append(value.text)
         with open(OUTPUT_FILE, 'a') as f:
             w = csv.writer(f)
             w.writerow(data)
-        counter += 1
-    print('...done')
 
 
 if __name__ == '__main__':
     surnames = get_surnames()
     browser = authenticate()
     if browser:
-        get_search_results(browser, surnames)
+        for surname in surnames:
+            totals = get_search_results(browser, surname)
+            if totals:
+                get_page(browser, totals, surname)
+        browser.quit()
