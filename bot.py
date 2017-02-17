@@ -74,7 +74,7 @@ def get_page(driver, results, name):
     print('   ...getting page {0}'.format(page))
     records = driver.find_elements_by_css_selector('tr.record')
     # get first page
-    get_links(driver, records, name)
+    get_links(driver, records, name, page, results['total_records'])
     driver.find_element_by_class_name('iconArrowBack').click()
     # get subsequent pages
     while page != results['total_pages']:
@@ -82,21 +82,23 @@ def get_page(driver, results, name):
         page += 1
         print('   ...getting page {0}'.format(page))
         records = driver.find_elements_by_css_selector('tr.record')
-        get_links(driver, records, name)
+        get_links(driver, records, name, page, results['total_records'])
         driver.find_element_by_class_name('iconArrowBack').click()
+    print('...done')
     return True
 
 
-def get_links(driver, records, name):
+def get_links(driver, records, name, page, total):
+    end = int(page) * 20
+    start = (int(end) - 20) + 1
+    print('      ...getting links {0} to {1} of {2}'.format(start, end, total))
     links = []
-    print('      ...getting links')
     for row in records:
         cell = row.find_elements_by_tag_name('td')[5].text
         if len(cell) > 1:
             link = row.find_element_by_tag_name('a')
             links.append(link.get_attribute('href'))
-    print('      ...found {0} links'.format(len(links)))
-    print('      ...getting data')
+    print('      ...found {0} appropriate links'.format(len(links)))
     for link in links:
         print('         ...getting link')
         driver.get(link)
