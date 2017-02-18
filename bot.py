@@ -74,16 +74,20 @@ def get_page(driver, results, name):
     print('   ...getting page {0}'.format(page))
     records = driver.find_elements_by_css_selector('tr.record')
     # get first page
-    get_links(driver, records, name, page, results['total_records'])
-    driver.find_element_by_class_name('iconArrowBack').click()
-    # get subsequent pages
-    while page != results['total_pages']:
-        driver.find_element_by_class_name('iconArrowRight').click()
-        page += 1
-        print('   ...getting page {0}'.format(page))
-        records = driver.find_elements_by_css_selector('tr.record')
-        get_links(driver, records, name, page, results['total_records'])
+    first_page_results = get_links(
+        driver, records, name, page, results['total_records'])
+    if first_page_results:
         driver.find_element_by_class_name('iconArrowBack').click()
+        # get subsequent pages
+        while page != results['total_pages']:
+            driver.find_element_by_class_name('iconArrowRight').click()
+            page += 1
+            print('   ...getting page {0}'.format(page))
+            records = driver.find_elements_by_css_selector('tr.record')
+            subsequent_page_results = get_links(
+                driver, records, name, page, results['total_records'])
+            if subsequent_page_results:
+                driver.find_element_by_class_name('iconArrowBack').click()
     print('...done')
     return True
 
@@ -99,17 +103,20 @@ def get_links(driver, records, name, page, total):
             link = row.find_element_by_tag_name('a')
             links.append(link.get_attribute('href'))
     print('      ...found {0} appropriate links'.format(len(links)))
-    for link in links:
-        print('         ...getting link')
-        driver.get(link)
-        sleep(5)
-        data = []
-        data.append(name)
-        for value in driver.find_elements_by_tag_name('td'):
-            data.append(value.text)
-        with open(OUTPUT_FILE, 'a') as f:
-            w = csv.writer(f)
-            w.writerow(data)
+    if len(links) > 0:
+        for link in links:
+            print('         ...getting link')
+            driver.get(link)
+            sleep(5)
+            data = []
+            data.append(name)
+            for value in driver.find_elements_by_tag_name('td'):
+                data.append(value.text)
+            with open(OUTPUT_FILE, 'a') as f:
+                w = csv.writer(f)
+                w.writerow(data)
+    else:
+        return False
 
 
 if __name__ == '__main__':
