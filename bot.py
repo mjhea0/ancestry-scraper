@@ -78,7 +78,10 @@ def get_page(driver, results, name):
         # get data
         found = get_passengers(records, name)
         if found:
-            driver.find_element_by_class_name('iconArrowRight').click()
+            try:
+                driver.find_element_by_class_name('iconArrowRight').click()
+            except:
+                pass
         page += 1
     print('...done')
     return True
