@@ -78,16 +78,16 @@ def get_page(driver, results, name):
         driver, records, name, page, results['total_records'])
     if first_page_results:
         driver.find_element_by_class_name('iconArrowBack').click()
-        # get subsequent pages
-        while page != results['total_pages']:
-            driver.find_element_by_class_name('iconArrowRight').click()
-            page += 1
-            print('   ...getting page {0}'.format(page))
-            records = driver.find_elements_by_css_selector('tr.record')
-            subsequent_page_results = get_links(
-                driver, records, name, page, results['total_records'])
-            if subsequent_page_results:
-                driver.find_element_by_class_name('iconArrowBack').click()
+    # get subsequent pages
+    while page != results['total_pages']:
+        driver.find_element_by_class_name('iconArrowRight').click()
+        page += 1
+        print('   ...getting page {0}'.format(page))
+        records = driver.find_elements_by_css_selector('tr.record')
+        subsequent_page_results = get_links(
+            driver, records, name, page, results['total_records'])
+        if subsequent_page_results:
+            driver.find_element_by_class_name('iconArrowBack').click()
     print('...done')
     return True
 
@@ -115,6 +115,7 @@ def get_links(driver, records, name, page, total):
             with open(OUTPUT_FILE, 'a') as f:
                 w = csv.writer(f)
                 w.writerow(data)
+        return True
     else:
         return False
 
