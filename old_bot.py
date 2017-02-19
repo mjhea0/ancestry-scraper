@@ -12,8 +12,7 @@ USERNAME = os.getenv('ANCESTRY_USERNAME', None)
 PASSWORD = os.getenv('ANCESTRY_PASSWORD', None)
 INPUT_FILE = os.path.join('data', 'surnames.txt')
 OUTPUT_FILE = os.path.join('data', 'data.csv')
-RECORDS_PER_PAGE = 50
-BASE = 'http://search.ancestry.com/cgi-bin/sse.dll?db=nypl&gss=sfs28_ms_db&new=1&rank=1&msT=1&MS_AdvCB=1&gsln={0}&gsln_x=1&MSAV=2&uidh=quk&gl=&gst=&hc={1}'
+BASE = 'http://search.ancestry.com/cgi-bin/sse.dll?db=nypl&gss=sfs28_ms_db&new=1&rank=1&msT=1&MS_AdvCB=1&gsln={0}&gsln_x=1&MSAV=2&uidh=quk'
 
 
 # functions
@@ -54,7 +53,7 @@ def authenticate():
 
 def get_search_results(driver, name):
     print('\nsearching passenger list for {0}...'.format(name))
-    driver.get(BASE.format(name, RECORDS_PER_PAGE))
+    driver.get(BASE.format(name))
     sleep(5)
     try:
         total_records = str(driver.find_element_by_class_name(
@@ -72,30 +71,53 @@ def get_search_results(driver, name):
 
 def get_page(driver, results, name):
     page = 1
+    print('   ...getting page {0}'.format(page))
+    records = driver.find_elements_by_css_selector('tr.record')
+    # get first page
+    first_page_results = get_links(
+        driver, records, name, page, results['total_records'])
+    if first_page_results:
+        driver.find_element_by_class_name('iconArrowBack').click()
+    # get subsequent pages
     while page != results['total_pages']:
+        driver.find_element_by_class_name('iconArrowRight').click()
+        page += 1
         print('   ...getting page {0}'.format(page))
         records = driver.find_elements_by_css_selector('tr.record')
-        # get data
-        found = get_passengers(records, name)
-        if found:
-            driver.find_element_by_class_name('iconArrowRight').click()
-        page += 1
+        subsequent_page_results = get_links(
+            driver, records, name, page, results['total_records'])
+        if subsequent_page_results:
+            driver.find_element_by_class_name('iconArrowBack').click()
     print('...done')
     return True
 
 
-def get_passengers(records, name):
+def get_links(driver, records, name, page, total):
+    end = int(page) * 20
+    start = (int(end) - 20) + 1
+    print('      ...getting links {0} to {1} of {2}'.format(start, end, total))
+    links = []
     for row in records:
-        data = row.find_elements_by_tag_name('td')
-        if data:
-            passengers = []
-            passengers.append(name)
-            for value in data[1:]:
-                passengers.append(value.text)
+        cell = row.find_elements_by_tag_name('td')[5].text
+        if len(cell) > 1:
+            link = row.find_element_by_tag_name('a')
+            links.append(link.get_attribute('href'))
+    print('      ...found {0} appropriate links'.format(len(links)))
+    if len(links) > 0:
+        for link in links:
+            print('         ...getting link')
+            driver.get(link)
+            sleep(5)
+            data = []
+            data.append(name)
+            for value in driver.find_elements_by_tag_name('td'):
+                data.append(value.text)
             with open(OUTPUT_FILE, 'a') as f:
                 w = csv.writer(f)
-                w.writerow(passengers)
-    return True
+                w.writerow(data)
+        return True
+    else:
+        return False
 
 
 if __name__ == '__main__':
