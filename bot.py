@@ -59,7 +59,9 @@ def get_search_results(driver, name):
     try:
         total_records = str(driver.find_element_by_class_name(
             'w50').text).split(' ')[-1]
-        total_pages = math.ceil(int(int(total_records.replace(',', ''))) / 20)
+        total_pages = math.ceil(int(
+            int(total_records.replace(',', ''))) / RECORDS_PER_PAGE)
+        print(total_pages)
         print('...found {0} records'.format(total_records))
         return {
             'total_records': total_records,
