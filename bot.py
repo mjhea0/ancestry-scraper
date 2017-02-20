@@ -74,7 +74,7 @@ def get_search_results(driver, name):
 
 def get_page(driver, results, name):
     page = 1
-    while page != results['total_pages']:
+    while page != results['total_pages'] + 1:
         print('   ...getting page {0}'.format(page))
         records = driver.find_elements_by_css_selector('tr.record')
         # get data
@@ -85,6 +85,7 @@ def get_page(driver, results, name):
             except:
                 pass
         page += 1
+        print(page, results['total_pages'])
     print('...done')
     return True
 
