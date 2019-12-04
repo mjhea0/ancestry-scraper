@@ -9,10 +9,10 @@ Welcome!
 1. Install [ChromeDriver](https://sites.google.com/a/chromium.org/chromedriver/) globally
 1. Set environment variables:
 
-  ```sh
-  $ export ANCESTRY_USERNAME=foo
-  $ export ANCESTRY_PASSWORD=bar
-  ```
+    ```sh
+    $ export ANCESTRY_USERNAME=foo
+    $ export ANCESTRY_PASSWORD=bar
+    ```
 
 1. Update the surnames in *data/surnames.txt*
 1. Run: `python bot.py`
